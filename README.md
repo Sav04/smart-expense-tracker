@@ -23,7 +23,7 @@ An AI-powered personal expense tracker that auto-categorizes spending using ML, 
 ## Setup (after Phase 1)
 
 ```bash
-git clone https://github.com/Sav04/expense-tracker.git
+git clone https://github.com/Sav04/smart-expense-tracker.git
 cd expense-tracker
 py -3.12 -m venv venv
 venv\Scripts\Activate.ps1   # Windows
