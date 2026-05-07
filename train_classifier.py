@@ -51,24 +51,31 @@ def build_pipeline() -> Pipeline:
     """
     Build the TF-IDF + Logistic Regression pipeline.
 
-    Tuned for small dataset (~150 examples) with proper-noun-heavy
-    text (Swiggy, Zomato, BookMyShow, etc.):
-      - unigrams only (bigrams overfit)
-      - keep ALL words including rare ones (proper nouns are signal)
-      - no stop word removal (descriptions too short)
-      - stronger L2 regularization via lower C
+    Pipeline = vectorizer + classifier wrapped in a single object.
+    Benefits:
+      - Inference is one call: pipeline.predict([text])
+      - We save/load one file, not two
+      - No risk of using a vectorizer on text that doesn't match
+        what the classifier was trained on (a classic bug)
+
+    Tuning notes for this small dataset (~200 examples):
+      - ngram_range=(1, 1): bigrams overfit at this scale
+      - min_df=1: keep all words including rare merchant names
+        (proper nouns are high-signal here)
+      - no stop_words: descriptions are too short to drop words safely
+      - default C=1.0: sklearn defaults work well; aggressive tuning
+        produced no measurable improvement on this dataset
     """
     return Pipeline([
         ("tfidf", TfidfVectorizer(
-            ngram_range=(1, 1),       # unigrams (keep from prev attempt)
-            min_df=1,                 # REVERTED to 1 — keep rare merchants
+            ngram_range=(1, 1),
+            min_df=1,
             sublinear_tf=True,
             lowercase=True,
-            # NO stop_words — descriptions too short to drop words
         )),
         ("classifier", LogisticRegression(
             max_iter=1000,
-            C=1.0,                    # CHANGED: 2x regularization
+            C=1.0,
             random_state=RANDOM_STATE,
         )),
     ])
