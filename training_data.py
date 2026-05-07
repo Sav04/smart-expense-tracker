@@ -77,6 +77,16 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("Indian Oil petrol pump", "Transport"),
     ("Bharat Petroleum diesel", "Transport"),
     ("Shell premium fuel", "Transport"),
+    ("Train ticket Mumbai Rajdhani", "Transport"),
+    ("Bus ticket overnight Volvo", "Transport"),
+    ("Flight ticket Chennai Bangalore", "Transport"),
+    ("IRCTC ticket booking AC", "Transport"),
+    ("Cab booking Uber to airport", "Transport"),
+    ("Petrol pump local fill", "Transport"),
+    ("Diesel refuel highway", "Transport"),
+    ("Auto fare college to station", "Transport"),
+    ("Metro ticket recharge", "Transport"),
+    ("Ola booking outstation trip", "Transport"),
 
     # =================================================================
     # 💡 Bills & Utilities  (~25)
@@ -233,6 +243,11 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("Photo printing studio", "Miscellaneous"),
     ("Wedding gift envelope", "Miscellaneous"),
     ("Tip to delivery person", "Miscellaneous"),
+    ("Birthday gift for friend", "Miscellaneous"),
+    ("Loan EMI auto debit", "Miscellaneous"),
+    ("LIC insurance renewal", "Miscellaneous"),
+    ("Salon haircut and beard", "Miscellaneous"),
+    ("Donation to charity NGO", "Miscellaneous"),
 ]
 
 
