@@ -11,7 +11,7 @@ from datetime import date, timedelta, datetime
 import streamlit as st
 
 from db_categories import get_all_categories
-from db_expenses import add_expense, get_all_expenses
+from db_expenses import add_expense, get_all_expenses, delete_expense
 from classifier import predict_category, predict_top_k, is_model_available
 from sms_parser import parse_sms
 from visualization import (
@@ -301,31 +301,81 @@ def render_add_expense_form() -> None:
 # =====================================================================
 
 def render_recent_expenses() -> None:
+    """Recent expenses with period filter and per-row delete buttons."""
     st.subheader("📋 Recent Expenses")
 
-    expenses = get_all_expenses()
+    all_expenses = get_all_expenses()
 
-    if not expenses:
+    if not all_expenses:
         st.info("No expenses yet. Add one above to get started.")
         return
 
-    display_rows = [
-        {
-            "Date": e["expense_date"],
-            "Category": f"{e['category_icon']} {e['category_name']}",
-            "Description": e["description"],
-            "Merchant": e["merchant"] or "—",
-            "Amount": f"₹{e['amount']:,.2f}",
-            "Source": "📱 SMS" if e["source"] == "sms" else "✍️ Manual",
-        }
-        for e in expenses[:20]
-    ]
+    # ----- Filter row ---------------------------------------------
+    col_filter, col_summary = st.columns([1, 3])
+    with col_filter:
+        period = st.selectbox(
+            "Show",
+            ["All Time", "This Month", "Last 30 Days", "Last 90 Days"],
+            key="recent_period",
+        )
 
-    st.dataframe(display_rows, hide_index=True, use_container_width=True)
+    expenses = _filter_expenses_by_period(all_expenses, period)
 
-    if len(expenses) > 20:
-        st.caption(f"Showing 20 of {len(expenses):,} expenses.")
+    if not expenses:
+        st.warning(f"No expenses in **{period}**.")
+        return
 
+    # Summary inline next to the filter
+    with col_summary:
+        st.write("")  # vertical spacer to align with the dropdown
+        total = sum(e["amount"] for e in expenses)
+        st.caption(
+            f"📊 **{len(expenses)}** expenses · "
+            f"**₹{total:,.2f}** total"
+        )
+
+    st.divider()
+
+    # ----- Header row ---------------------------------------------
+    # Column proportions: Date | Category | Description | Amount | Action
+    cols = st.columns([2, 3, 4, 2, 1])
+    cols[0].markdown("**Date**")
+    cols[1].markdown("**Category**")
+    cols[2].markdown("**Description**")
+    cols[3].markdown("**Amount**")
+    cols[4].markdown("")  # blank for delete column
+
+    # ----- Data rows ----------------------------------------------
+    visible = expenses[:30]  # cap to keep the page snappy
+
+    for e in visible:
+        cols = st.columns([2, 3, 4, 2, 1])
+
+        cols[0].write(e["expense_date"])
+        cols[1].write(f"{e['category_icon']} {e['category_name']}")
+
+        # Show description; if merchant differs, append it as italic
+        desc = e["description"]
+        merchant = e["merchant"]
+        if merchant and merchant.lower() != desc.lower():
+            desc = f"{desc}  ·  *{merchant}*"
+        cols[2].write(desc)
+
+        # Combine source icon with amount in one cell
+        source_icon = "📱" if e["source"] == "sms" else "✍️"
+        cols[3].write(f"{source_icon} ₹{e['amount']:,.2f}")
+
+        with cols[4]:
+            if st.button(
+                "🗑️",
+                key=f"del_{e['id']}",
+                help=f"Delete expense #{e['id']}",
+            ):
+                delete_expense(e["id"])
+                st.rerun()
+
+    if len(expenses) > 30:
+        st.caption(f"Showing 30 of {len(expenses):,} expenses.")
 
 # =====================================================================
 # Dashboard (NEW)
