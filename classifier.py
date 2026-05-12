@@ -53,6 +53,15 @@ def _load_model() -> Pipeline:
         _pipeline = joblib.load(MODEL_PATH)
     return _pipeline
 
+def invalidate_cache() -> None:
+    """
+    Force the model to be reloaded from disk on the next predict call.
+
+    Called after retraining so subsequent predictions use the freshly
+    fitted pipeline instead of the cached old one.
+    """
+    global _pipeline
+    _pipeline = None
 
 def _build_result(class_name: str, confidence: float) -> Optional[dict]:
     """Convert a (class_name, confidence) into the rich result dict."""

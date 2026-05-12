@@ -48,6 +48,11 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("Ice cream at Naturals", "Food & Dining"),
     ("Late night Maggi order", "Food & Dining"),
     ("Haldiram sweets purchase", "Food & Dining"),
+    ("Tea and snacks", "Food & Dining"),
+    ("Coffee with friends", "Food & Dining"),
+    ("Mess fees monthly", "Food & Dining"),
+    ("Cold drinks and chips", "Food & Dining"),
+    ("Dinner at restaurant", "Food & Dining"),
 
     # =================================================================
     # 🚗 Transport  (~25)
@@ -87,6 +92,10 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("Auto fare college to station", "Transport"),
     ("Metro ticket recharge", "Transport"),
     ("Ola booking outstation trip", "Transport"),
+    ("Petrol for car", "Transport"),
+    ("Taxi to station", "Transport"),
+    ("Bike fuel", "Transport"),
+    ("Cab ride home", "Transport"),
 
     # =================================================================
     # 💡 Bills & Utilities  (~25)
@@ -145,6 +154,9 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("Watch from Titan", "Shopping"),
     ("Sunglasses Lenskart", "Shopping"),
     ("Bedsheet from Pepperfry", "Shopping"),
+    ("New shoes purchase", "Shopping"),
+    ("Headphones electronics", "Shopping"),
+    ("Online shopping order", "Shopping"),
 
     # =================================================================
     # 🎬 Entertainment  (~22)
@@ -219,6 +231,18 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("IELTS preparation course", "Education"),
     ("GRE coaching classes", "Education"),
     ("Workshop registration fee", "Education"),
+    ("Books for school", "Education"),
+    ("School supplies stationery", "Education"),
+    ("Notebook and pens", "Education"),
+    ("College project materials", "Education"),
+    ("Library membership fee", "Education"),
+    ("Engineering drawing kit", "Education"),
+    ("Calculator for exam", "Education"),
+    ("Photocopy of notes", "Education"),
+    ("Lab coat for college", "Education"),
+    ("Geometry box for class", "Education"),
+    ("Coaching class fees", "Education"),
+    ("Tuition fee monthly", "Education"),
 
     # =================================================================
     # 📦 Miscellaneous  (~20)
@@ -248,6 +272,10 @@ TRAINING_DATA: list[tuple[str, str]] = [
     ("LIC insurance renewal", "Miscellaneous"),
     ("Salon haircut and beard", "Miscellaneous"),
     ("Donation to charity NGO", "Miscellaneous"),
+    ("Gift for parent", "Miscellaneous"),
+    ("Wedding shagun envelope", "Miscellaneous"),
+    ("Festival celebration expense", "Miscellaneous"),
+    ("Personal expense random", "Miscellaneous"),
 ]
 
 

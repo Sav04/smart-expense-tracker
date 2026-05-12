@@ -51,7 +51,15 @@ CREATE TABLE IF NOT EXISTS budgets (
     UNIQUE (category_id, month)
 );
 """
-
+CREATE_CORRECTIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS corrections (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    description TEXT    NOT NULL,
+    category_id INTEGER NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+"""
 
 # ---------------------------------------------------------------------
 # Seed data: the 8 default categories
@@ -80,9 +88,11 @@ def init_database() -> None:
         cursor.execute(CREATE_CATEGORIES_TABLE)
         cursor.execute(CREATE_EXPENSES_TABLE)
         cursor.execute(CREATE_BUDGETS_TABLE)
+        cursor.execute(CREATE_CORRECTIONS_TABLE)
         print("  ✓ categories")
         print("  ✓ expenses")
         print("  ✓ budgets")
+        print("  ✓ corrections")
 
         # Seed the default categories. INSERT OR IGNORE means: if a
         # category with this name already exists, skip silently.

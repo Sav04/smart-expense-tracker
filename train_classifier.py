@@ -15,7 +15,7 @@ from scratch in a few seconds.
 Usage:
     python train_classifier.py
 """
-
+from db_corrections import get_all_corrections, get_correction_count
 from pathlib import Path
 
 import joblib
@@ -80,29 +80,59 @@ def build_pipeline() -> Pipeline:
         )),
     ])
 
+def load_all_training_data() -> tuple[list[str], list[str]]:
+    """
+    Combine seed training data (training_data.py) with user corrections
+    from the database. This is what the retraining loop is built on:
+    every override the user makes becomes a new training example next
+    time the model is fit.
+    """
+    texts, labels = get_training_data()
+    n_seed = len(texts)
+
+    # Pull user corrections from DB and append
+    try:
+        corrections = get_all_corrections()
+        for c in corrections:
+            texts.append(c["description"])
+            labels.append(c["category_name"])
+    except Exception:
+        # If corrections table doesn't exist yet, skip silently
+        corrections = []
+
+    return texts, labels
 
 # ---------------------------------------------------------------------
 # Training and evaluation
 # ---------------------------------------------------------------------
 
-def train() -> None:
-    print("=" * 60)
-    print("Training expense category classifier")
-    print("=" * 60)
+def train(verbose: bool = True) -> dict:
+    """
+    Fit the classifier on combined seed data + user corrections.
 
-    # --- Step 1: Load data ----------------------------------------
-    texts, labels = get_training_data()
-    print(f"\nLoaded {len(texts)} labeled examples "
-          f"across {len(set(labels))} categories")
+    Args:
+        verbose: If True, print progress and metrics.
 
-    distribution = get_category_distribution()
-    for cat, count in sorted(distribution.items(), key=lambda x: -x[1]):
-        print(f"  {cat:<20} {count}")
+    Returns:
+        dict with keys: train_accuracy, test_accuracy, total_examples,
+        n_corrections.
+    """
+    if verbose:
+        print("=" * 60)
+        print("Training expense category classifier")
+        print("=" * 60)
 
-    # --- Step 2: Train/test split (stratified) ---------------------
-    # stratify=labels guarantees both splits have the same class
-    # proportions. Without it, you could get a test set missing
-    # entire categories — meaningless evaluation.
+    # --- Step 1: Load combined data --------------------------------
+    texts, labels = load_all_training_data()
+    n_corrections = get_correction_count() if _safe_count() else 0
+    n_seed = len(texts) - n_corrections
+
+    if verbose:
+        print(f"\nLoaded {len(texts)} labeled examples "
+              f"({n_seed} seed + {n_corrections} corrections) "
+              f"across {len(set(labels))} categories")
+
+    # --- Step 2: Train/test split ----------------------------------
     X_train, X_test, y_train, y_test = train_test_split(
         texts,
         labels,
@@ -110,76 +140,48 @@ def train() -> None:
         stratify=labels,
         random_state=RANDOM_STATE,
     )
-    print(f"\nTrain: {len(X_train)} examples")
-    print(f"Test:  {len(X_test)} examples")
+    if verbose:
+        print(f"Train: {len(X_train)}  ·  Test: {len(X_test)}")
 
-    # --- Step 3: Build pipeline and fit ----------------------------
+    # --- Step 3: Fit ----------------------------------------------
     pipeline = build_pipeline()
-    print("\nTraining...")
+    if verbose:
+        print("\nTraining...")
     pipeline.fit(X_train, y_train)
-    print("Done.")
 
-    # --- Step 4: Evaluate ------------------------------------------
+    # --- Step 4: Evaluate -----------------------------------------
     train_predictions = pipeline.predict(X_train)
     test_predictions = pipeline.predict(X_test)
-
     train_accuracy = accuracy_score(y_train, train_predictions)
     test_accuracy = accuracy_score(y_test, test_predictions)
 
-    print("\n" + "=" * 60)
-    print("Results")
-    print("=" * 60)
-    print(f"Train accuracy: {train_accuracy:.1%}")
-    print(f"Test accuracy:  {test_accuracy:.1%}")
+    if verbose:
+        print(f"\nTrain accuracy: {train_accuracy:.1%}")
+        print(f"Test accuracy:  {test_accuracy:.1%}")
+        print(classification_report(y_test, test_predictions, zero_division=0))
 
-    gap = train_accuracy - test_accuracy
-    if gap > 0.20:
-        print(f"⚠  Train/test gap ({gap:.1%}) — overfitting suspected.")
-    else:
-        print(f"✓ Train/test gap ({gap:.1%}) is healthy.")
-
-    # Per-category metrics
-    print("\nPer-category breakdown on test set:")
-    print(classification_report(y_test, test_predictions, zero_division=0))
-
-    # Confusion matrix
-    print("Confusion matrix (rows = true label, cols = predicted):")
-    labels_sorted = sorted(set(labels))
-    short_names = [name[:11] for name in labels_sorted]
-    cm = confusion_matrix(y_test, test_predictions, labels=labels_sorted)
-
-    print(f"\n{'':<13}", end="")
-    for name in short_names:
-        print(f"{name:>13}", end="")
-    print()
-    for i, name in enumerate(short_names):
-        print(f"{name:<13}", end="")
-        for val in cm[i]:
-            print(f"{val:>13}", end="")
-        print()
-
-    # --- Step 5: Save the trained pipeline -------------------------
+    # --- Step 5: Save ---------------------------------------------
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipeline, MODEL_PATH)
-    file_size_kb = MODEL_PATH.stat().st_size / 1024
-    print(f"\n✅ Model saved to {MODEL_PATH} ({file_size_kb:.1f} KB)")
+    if verbose:
+        print(f"\n✅ Model saved to {MODEL_PATH}")
 
-    # --- Step 6: Smoke test on novel descriptions ------------------
-    print("\nSmoke test on novel descriptions:")
-    novel_texts = [
-        "BookMyShow movie tickets",
-        "Swiggy lunch order",
-        "Petrol fill at HP",
-        "Doctor visit checkup",
-        "Amazon shopping order",
-        "Coursera AI course",
-    ]
-    predictions = pipeline.predict(novel_texts)
-    probabilities = pipeline.predict_proba(novel_texts)
+    return {
+        "train_accuracy": train_accuracy,
+        "test_accuracy": test_accuracy,
+        "total_examples": len(texts),
+        "n_seed": n_seed,
+        "n_corrections": n_corrections,
+    }
 
-    for text, pred, probs in zip(novel_texts, predictions, probabilities):
-        confidence = probs.max()
-        print(f"  '{text:<32}' → {pred:<20} ({confidence:.0%} sure)")
+
+def _safe_count() -> bool:
+    """Helper: check if corrections table is queryable."""
+    try:
+        get_correction_count()
+        return True
+    except Exception:
+        return False
 
 
 if __name__ == "__main__":
