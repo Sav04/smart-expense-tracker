@@ -6,7 +6,7 @@ Three top-level tabs:
   - 📊 Dashboard: filtered analytics with charts and KPIs
   - 💰 Budgets: per-category monthly limits with alerts
 """
-
+from seed_demo_data import seed_demo_data
 from datetime import date, timedelta, datetime
 
 import streamlit as st
@@ -751,6 +751,17 @@ def render_budgets() -> None:
 # =====================================================================
 
 def main() -> None:
+    # On first deploy / fresh start, ensure database tables exist
+    from init_db import init_database
+    try:
+        init_database()
+    except Exception:
+        pass  # tables already exist
+
+    # Auto-seed demo data if the database is empty (deployment-friendly).
+    # No-op for local users who already have data.
+    seed_demo_data(force=False)
+
     st.set_page_config(
         page_title="Smart Expense Tracker",
         page_icon="💰",

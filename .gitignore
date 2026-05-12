@@ -1,38 +1,23 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-
-# Virtual environments
+*.pyc
+*.pyo
 venv/
-env/
 .venv/
+*.egg-info/
 
 # IDE
 .vscode/
 .idea/
-*.swp
+
+# Local database (auto-seeded on deploy)
+*.db
+*.db-journal
+
+# Local environment
+.env
+.streamlit/secrets.toml
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Streamlit
-.streamlit/secrets.toml
-
-# Project-specific: NEVER commit personal financial data
-data/
-*.db
-*.sqlite
-*.sqlite3
-
-# ML model artifacts (re-trainable, shouldn't bloat repo)
-models/*.pkl
-models/*.joblib
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Environment variables
-.env
