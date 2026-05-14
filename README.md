@@ -2,7 +2,7 @@
 
 An ML-powered personal expense tracker for Indian users, featuring auto-categorization, SMS parsing, interactive analytics, and an active-learning correction loop.
 
-**🔗 Live Demo:** [sav04-expense-tracker.streamlit.app](https://sav04-expense-tracker.streamlit.app/) *(update after deployment)*
+**🔗 Live Demo:** [sav04-expense-tracker.streamlit.app](https://sav04-expense-tracker.streamlit.app/)
 
 ## 📸 Screenshots
 
