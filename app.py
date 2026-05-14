@@ -6,7 +6,7 @@ Three top-level tabs:
   - 📊 Dashboard: filtered analytics with charts and KPIs
   - 💰 Budgets: per-category monthly limits with alerts
 """
-from seed_demo_data import seed_demo_data
+from seed_demo_data import seed_demo_data, clear_all_data, unmark_seeded
 from datetime import date, timedelta, datetime
 
 import streamlit as st
@@ -161,6 +161,57 @@ def render_sidebar() -> None:
                     f"({metrics['n_seed']} seed + "
                     f"{metrics['n_corrections']} yours)  ·  "
                     f"Test accuracy: **{metrics['test_accuracy']:.0%}**"
+                )
+                st.rerun()
+        
+        # ----- Admin section ----------------------------------
+        st.divider()
+        with st.expander("⚙️ Settings", expanded=False):
+            st.caption("Manage the data behind this app.")
+
+            # Clear-all button
+            if st.button(
+                "🧹 Clear all data",
+                use_container_width=True,
+                help="Delete all expenses, budgets, and corrections.",
+            ):
+                st.session_state["_confirm_clear"] = True
+
+            if st.session_state.get("_confirm_clear"):
+                st.warning(
+                    "⚠️ This will delete **all** expenses, budgets, "
+                    "and corrections. Demo data won't auto-restore. "
+                    "This cannot be undone."
+                )
+                col_yes, col_no = st.columns(2)
+                with col_yes:
+                    if st.button("Yes, delete", type="primary",
+                                 use_container_width=True):
+                        result = clear_all_data()
+                        st.session_state["_confirm_clear"] = False
+                        st.success(
+                            f"✓ Cleared {result['expenses_deleted']} expenses, "
+                            f"{result['budgets_deleted']} budgets, "
+                            f"{result['corrections_deleted']} corrections."
+                        )
+                        st.rerun()
+                with col_no:
+                    if st.button("Cancel", use_container_width=True):
+                        st.session_state["_confirm_clear"] = False
+                        st.rerun()
+
+            # Restore-demo button
+            if st.button(
+                "🔄 Restore demo data",
+                use_container_width=True,
+                help="Wipe current data and re-seed with the demo dataset.",
+            ):
+                clear_all_data()
+                unmark_seeded()
+                result = seed_demo_data(force=True)
+                st.success(
+                    f"✓ Restored {result['expenses_added']} demo expenses "
+                    f"and {result['budgets_added']} budgets."
                 )
                 st.rerun()
 
