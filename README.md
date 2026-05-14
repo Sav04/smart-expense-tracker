@@ -2,7 +2,21 @@
 
 An ML-powered personal expense tracker for Indian users, featuring auto-categorization, SMS parsing, interactive analytics, and an active-learning correction loop.
 
-**🔗 Live Demo:** [your-app-url-here.streamlit.app](https://your-app-url-here.streamlit.app) *(update after deployment)*
+**🔗 Live Demo:** [sav04-expense-tracker.streamlit.app](https://sav04-expense-tracker.streamlit.app/) *(update after deployment)*
+
+## 📸 Screenshots
+
+### SMS Auto-Import
+![SMS parser extracts amount, merchant, date — ML suggests category](screenshots/sms-parsing.png)
+
+### Dashboard
+![Category breakdown, top merchants, and daily spending trend](screenshots/dashboard.png)
+
+### Budgets
+![Per-category monthly limits with alert thresholds](screenshots/budgets.png)
+
+### Recent Expenses
+![Filterable expense list with delete actions](screenshots/recent-expenses.png)
 
 ---
 
